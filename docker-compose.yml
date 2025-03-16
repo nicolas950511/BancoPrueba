@@ -8,9 +8,9 @@ services:
       - "8081:8081"
     depends_on:
       postgres-db:
-        condition: service_healthy  # Espera a que PostgreSQL esté listo antes de iniciar
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/cuentasdb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/clientesdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
@@ -22,7 +22,7 @@ services:
       - "8082:8082"
     depends_on:
       postgres-db:
-        condition: service_healthy  # Espera a que PostgreSQL esté listo antes de iniciar
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/cuentasdb
       SPRING_DATASOURCE_USERNAME: postgres
@@ -34,7 +34,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: cuentasdb  # Asegura que la BD existe
+      POSTGRES_DB: postgres  # Evita que se sobreescriba una BD específica
     ports:
       - "5433:5432"
     volumes:
@@ -44,7 +44,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    command: ["postgres"]
-
+    command: >
+      bash -c "
+      docker-entrypoint.sh postgres &
+      sleep 10 &&
+      psql -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'clientesdb'\" | grep -q 1 || psql -U postgres -c 'CREATE DATABASE clientesdb;' &&
+      psql -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'cuentasdb'\" | grep -q 1 || psql -U postgres -c 'CREATE DATABASE cuentasdb;' &&
+      wait"
+      
 volumes:
   pgdata:
