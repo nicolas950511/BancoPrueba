@@ -3,6 +3,7 @@ package com.banco.mscuentas.infrastructure.adapter;
 import com.banco.mscuentas.application.CuentaService;
 import com.banco.mscuentas.domain.Cuenta;
 import com.banco.mscuentas.domain.exception.ClienteNotFoundException;
+import com.banco.mscuentas.domain.exception.NumeroCuentaDuplicadoException;
 import com.banco.mscuentas.infrastructure.entity.CuentaEntity;
 import com.banco.mscuentas.infrastructure.repository.JpaCuentaRepository;
 import com.banco.mscuentas.infrastructure.repository.JpaMovimientoRepository;
@@ -33,6 +34,10 @@ public class CuentaRepositoryAdapter implements CuentaService {
 		if (!clienteRepositoryAdapter.clienteExiste(cuenta.getClienteId())) {
 			throw new ClienteNotFoundException(cuenta.getClienteId());
 		}
+		if (repository.findByNumeroCuenta(cuenta.getNumeroCuenta()).isPresent()) {
+			throw new NumeroCuentaDuplicadoException(cuenta.getNumeroCuenta());
+		}
+
 		CuentaEntity entity = mapToEntity(cuenta);
 		return mapToDomain(repository.save(entity));
 	}
