@@ -5,7 +5,7 @@ spring:
   application:
     name: ms-cuentas
   datasource:
-    url: jdbc:postgresql://postgres-cuentas:5432/cuentasdb
+    url: jdbc:postgresql://postgres-db:5432/cuentasdb  # Cambiado a postgres-db
     username: postgres
     password: admin
     driver-class-name: org.postgresql.Driver

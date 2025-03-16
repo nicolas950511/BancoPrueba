@@ -1,49 +1,50 @@
 version: '3.8'
+
 services:
-  postgres-clientes:
-    image: postgres:latest
-    container_name: postgres-clientes
-    environment:
-      POSTGRES_DB: clientesdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-    ports:
-      - "5433:5432"
-
-  postgres-cuentas:
-    image: postgres:latest
-    container_name: postgres-cuentas
-    environment:
-      POSTGRES_DB: cuentasdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-    ports:
-      - "5434:5432"
-
   ms-clientes:
     build:
       context: ./ms-clientes
-      dockerfile: Dockerfile
-    container_name: ms-clientes
-    depends_on:
-      - postgres-clientes
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-clientes:5432/clientesdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: admin
     ports:
       - "8081:8081"
+    depends_on:
+      postgres-db:
+        condition: service_healthy  # Espera a que PostgreSQL esté listo antes de iniciar
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/cuentasdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
 
   ms-cuentas:
     build:
       context: ./ms-cuentas
-      dockerfile: Dockerfile
-    container_name: ms-cuentas
-    depends_on:
-      - postgres-cuentas
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-cuentas:5432/cuentasdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: admin
     ports:
       - "8082:8082"
+    depends_on:
+      postgres-db:
+        condition: service_healthy  # Espera a que PostgreSQL esté listo antes de iniciar
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/cuentasdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+
+  postgres-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: cuentasdb  # Asegura que la BD existe
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    command: ["postgres"]
+
+volumes:
+  pgdata:
