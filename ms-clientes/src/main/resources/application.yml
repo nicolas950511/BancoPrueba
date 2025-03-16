@@ -5,7 +5,7 @@ spring:
   application:
     name: ms-clientes
   datasource:
-    url: jdbc:postgresql://localhost:5432/clientesdb
+    url: jdbc:postgresql://postgres-clientes:5432/clientesdb
     username: postgres
     password: admin
     driver-class-name: org.postgresql.Driver
